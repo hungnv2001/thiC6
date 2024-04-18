@@ -1,0 +1,61 @@
+﻿@page "/update/{id}"
+@using AppData.Entity
+@using AppView.Service
+@using AppData.Entity
+@using AppView.Service;
+@if (product != null)
+{
+	<EditForm Model="product" OnValidSubmit="OnSubmit">
+		<div>
+			<label for="name" class="form-label">Tên</label>
+			<InputText class="form-control" id="name" @bind-Value="@product.Name"></InputText>
+			<ValidationMessage For="()=>product.Name"></ValidationMessage>
+		</div>
+		<div>
+			<label for="description" class="form-label">Mô tả</label>
+			<InputText class="form-control" id="description" @bind-Value="@product.Description"></InputText>
+			<ValidationMessage For="()=>product.Description"></ValidationMessage>
+		</div>
+		<div>
+			<label for="quantity" class="form-label">Quantity</label>
+			<InputNumber class="form-control" id="quantity" @bind-Value="@product.Quantity"></InputNumber>
+			<ValidationMessage For="()=>product.Quantity"></ValidationMessage>
+		</div>
+		<div>
+			<label for="name" class="form-label">Ảnh</label>
+			<InputFile class="form-control" id="imgf" accept=".jpeg,.tiff,.jpg" OnChange="InputFileChange"></InputFile>
+		</div>
+		<button class="btn btn-warning mt-2">Cập nhật</button>
+		<DataAnnotationsValidator />
+	</EditForm>
+}
+@code {
+	[Inject]
+	protected IProduct service { get; set; }
+	[Inject]
+	protected NavigationManager NavigationManager { get; set; }
+	[Parameter]
+	public string id { get; set; }
+	protected Product product = new Product();
+	protected IBrowserFile file { get; set; }
+	protected async Task InputFileChange(InputFileChangeEventArgs e)
+	{
+		file = e.File;
+	}
+	protected override async Task OnInitializedAsync()
+	{
+		product = await service.GetByID(int.Parse(id));
+	}
+	protected async Task OnSubmit()
+	{
+		if (file != null)
+		{
+			product.ImageUrl = await service.PostImg(file);
+		}
+		var response = await service.Update(product);
+		if (response == "true")
+		{
+			NavigationManager.NavigateTo("list");
+		}
+	}
+}

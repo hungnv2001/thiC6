@@ -1,0 +1,62 @@
+﻿@page "/create"
+@using AppData.Entity
+@using AppView.Service
+@inject IJSRuntime JSRuntime
+
+<h3>Create</h3>
+<EditForm Model="product" OnValidSubmit="OnSubmit">
+	<div>
+		<label for="name" class="form-label">Tên</label>
+		<InputText class="form-control" id="name" @bind-Value="@product.Name"></InputText>
+		<ValidationMessage For="()=>product.Name"></ValidationMessage>
+	</div>
+	<div>
+		<label for="description" class="form-label">Mô tả</label>
+		<InputText class="form-control" id="description" @bind-Value="@product.Description"></InputText>
+		<ValidationMessage For="()=>product.Description"></ValidationMessage>
+	</div>
+	<div>
+		<label for="quantity" class="form-label">Quantity</label>
+		<InputNumber class="form-control" id="quantity" @bind-Value="@product.Quantity"></InputNumber>
+		<ValidationMessage For="()=>product.Quantity"></ValidationMessage>
+	</div>
+	<div>
+		<label for="name" class="form-label">Ảnh</label>
+		<InputFile class="form-control" id="imgf" accept=".jpeg,.tiff,.jpg" OnChange="InputFileChange"></InputFile>
+	</div>
+	<button class="btn btn-success mt-2">Thêm mới</button>
+	<DataAnnotationsValidator />
+</EditForm>
+@code {
+	[Inject]
+	protected IProduct service { get; set; }
+	[Inject]
+	protected NavigationManager NavigationManager { get; set; }
+	protected Product product = new Product();
+	protected IBrowserFile file { get; set; }
+	protected async Task InputFileChange(InputFileChangeEventArgs e)
+	{
+			file = e.File;
+	}
+	protected async Task OnSubmit()
+	{
+		
+		var formatAccepted = new[] { ".jpeg", ".jpg", ".tiff" };
+		var fileExtension = System.IO.Path.GetExtension(file.Name);
+		if (!formatAccepted.Contains(fileExtension))
+		{
+			file = null;
+			await JSRuntime.InvokeVoidAsync("alert", "Chỉ chấp nhận các tệp có định dạng .jpeg, .jpg, .tiff");
+			return;
+		}
+
+		var url = await service.PostImg(file);
+		
+		product.ImageUrl = url;
+		var response = await service.Post(product);
+		if (response != null)
+		{
+			NavigationManager.NavigateTo("list");
+		}
+	}
+}

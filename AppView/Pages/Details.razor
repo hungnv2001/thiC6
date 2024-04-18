@@ -1,0 +1,43 @@
+﻿@page "/detail/{id}"
+@using AppData.Entity
+@using AppView.Service
+
+
+
+@if (product != null)
+{
+	<EditForm Model="product" class="mb-4">
+		<div>
+			<label for="name" class="form-label">Tên</label>
+			<InputText class="form-control" hidden id="name" @bind-Value="@product.Name"></InputText>
+		</div>
+		<div>
+			<label for="description" class="form-label">Mô tả</label>
+			<InputText class="form-control" hidden id="description" @bind-Value="@product.Description"></InputText>
+		</div>
+		<div>
+			<label for="quantity" class="form-label">Quantity</label>
+			<InputNumber class="form-control" hidden id="name" @bind-Value="@product.Quantity"></InputNumber>
+		</div>
+		<div>
+			<img height="240px" src="/uploads/@product.ImageUrl" />
+		</div>
+	</EditForm>
+		<a href="list" class="btn btn-info me-2">Trang chủ</a>
+		<a href="/update/@product.ID" class="btn btn-outline-warning">Cập nhật</a>
+
+}
+@code {
+	[Inject]
+	protected IProduct service { get; set; }
+	[Parameter]
+	public string id { get; set; }
+	protected Product product = new Product();
+
+	protected override async Task OnInitializedAsync()
+	{
+		product = await service.GetByID(int.Parse(id));
+	}
+
+}
+
